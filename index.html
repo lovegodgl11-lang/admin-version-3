@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en" class=""><head><script>window.livecodes = window.livecodes || {};</script><title>Untitled Project</title><meta name="title" content="Untitled Project"><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="./style.css"><script src="https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.js" async=""></script><script type="importmap">{
+  "imports": {}
+}</script></head><body>
+
+<script>window.livecodes = window.livecodes || {};</script><title>Admin earning app ver2.0</title><meta name="title" content="Admin earning app ver2.0"><meta name="description" content="Admin panel "><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><style id="__livecodes_styles__"></style><script src="https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.js" async=""></script>
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navrose Admin Panel</title>
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #002f34;
+            --secondary-color: #4caf50;
+            --background-color: #f0f2f5;
+            --card-background: #ffffff;
+            --text-color: #333;
+            --text-color-light: #6c757d;
+            --border-color: #dee2e6;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        #root {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        /* --- NOTIFICATION BELL STYLES --- */
+        .notification-area {
+            position: relative;
+        }
+        .notification-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            padding: 0.5rem;
+        }
+        .notification-btn svg {
+            width: 28px;
+            height: 28px;
+            fill: white;
+        }
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .notification-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: var(--card-background);
+            color: var(--text-color);
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            width: 280px;
+            overflow: hidden;
+            z-index: 1100;
+            border: 1px solid var(--border-color);
+        }
+        .notification-dropdown-header {
+            padding: 1rem;
+            font-weight: bold;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .notification-dropdown-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+        }
+        .notification-dropdown-item:last-child {
+            border-bottom: none;
+        }
+        .notification-dropdown-item:hover {
+            background-color: var(--background-color);
+        }
+
+
+        .main-content {
+            padding: 2rem;
+            flex-grow: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .form-container {
+            background: var(--card-background);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            max-width: 700px;
+            margin: 2rem auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-sizing: border-box;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 1rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+        }
+
+        .form-actions {
+            text-align: center;
+        }
+
+        .form-actions button {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+        }
+        .form-actions button:disabled {
+            background-color: var(--text-color-light);
+            cursor: not-allowed;
+        }
+
+        .dashboard-container h2 {
+            color: var(--primary-color);
+        }
+
+        .ads-list { list-style: none; padding: 0; }
+        .ads-list-item {
+            background: var(--card-background);
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--box-shadow);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .ads-list-item > img { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; }
+        .ad-info { flex-grow: 1; }
+        .ad-info h4 { margin: 0 0 0.25rem; }
+        .ad-info p { margin: 0; font-size: 0.9rem; color: var(--text-color-light); }
+        .order-items-list { list-style-type: none; padding-left: 1rem; margin: 0.5rem 0; font-size: 0.9rem; }
+        .ad-status { padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.8rem; font-weight: bold; color: white; text-transform: capitalize; }
+        .status-approved, .status-active, .status-delivered { background-color: var(--secondary-color); }
+        .status-pending, .status-pending_payment { background-color: var(--warning-color); color: var(--text-color); }
+        .status-rejected, .status-cancelled { background-color: var(--danger-color); }
+        .status-sold, .status-expired { background-color: var(--text-color-light); }
+        .status-payment_verified, .status-shipped { background-color: var(--info-color); }
+
+        .ad-actions button, .ad-actions a { margin-left: 0.5rem; padding: 0.5rem 1rem; border: none; border-radius: var(--border-radius); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;}
+        .btn-approve { background-color: var(--secondary-color); color: white; }
+        .btn-reject { background-color: var(--danger-color); color: white; }
+        .btn-update, .btn-edit { background-color: var(--info-color); color: white; }
+        .btn-delete { background-color: var(--danger-color); color: white; }
+        .btn-whatsapp { background-color: #25D366; color: white; }
+        
+        .admin-global-search { width: 100%; padding: 0.75rem; font-size: 1rem; border: 1px solid var(--border-color); border-radius: var(--border-radius); margin-bottom: 1.5rem; box-sizing: border-box; }
+        .dashboard-page h2 { text-align: center; margin-bottom: 2rem; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1.5rem; }
+        .dashboard-icon-card { background-color: var(--card-background); border-radius: var(--border-radius); padding: 1.5rem 1rem; text-align: center; cursor: pointer; box-shadow: var(--box-shadow); position: relative; transition: transform 0.2s, box-shadow 0.2s; }
+        .dashboard-icon-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+        .item-count-badge { position: absolute; top: 8px; right: 8px; background-color: var(--danger-color); color: white; border-radius: 50%; width: 24px; height: 24px; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .icon-wrapper { width: 60px; height: 60px; background-color: var(--background-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; margin-left: auto; margin-right: auto;}
+        .dashboard-icon-card svg { width: 32px; height: 32px; fill: var(--primary-color); }
+        
+        .order-details { flex-grow: 1; }
+        .order-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+        .order-status-select { padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color); }
+        
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 1500; }
+        .modal-content { background: var(--card-background); padding: 2rem; border-radius: var(--border-radius); width: 90%; max-width: 550px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .modal-close-btn { position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 2rem; cursor: pointer; color: var(--text-color-light); }
+        .image-modal-content { padding: 1rem; max-width: 90vw; max-height: 90vh; }
+        .image-modal-content img { max-width: 100%; max-height: 80vh; border-radius: var(--border-radius); }
+        .modal-actions { display: flex; justify-content: center; gap: 1rem; margin-top: 1.5rem; }
+        .modal-actions button, .btn-cancel { padding: 0.75rem 1.5rem; border: none; border-radius: var(--border-radius); cursor: pointer; }
+        .btn-confirm { background-color: var(--secondary-color); color: white; }
+        .btn-cancel { background-color: var(--text-color-light); color: white; }
+        
+        .notification { position: fixed; top: 20px; right: 20px; padding: 1rem 1.5rem; border-radius: var(--border-radius); color: white; z-index: 2000; opacity: 0; transform: translateY(-20px); transition: opacity 0.3s ease, transform 0.3s ease; visibility: hidden; }
+        .notification.show { opacity: 1; transform: translateY(0); visibility: visible; }
+        .notification.success { background-color: var(--secondary-color); }
+        .notification.error { background-color: var(--danger-color); }
+        
+        .table-container { max-height: 60vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--border-radius); }
+        .data-table { width: 100%; border-collapse: collapse; background-color: var(--card-background); }
+        .data-table th, .data-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .data-table th { background-color: #f8f9fa; cursor: pointer; user-select: none; position: sticky; top: 0; z-index: 10; }
+        .data-table th:hover { background-color: #e9ecef; }
+        .data-table td .ad-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .data-table td .ad-actions button, .data-table td .ad-actions a { margin-left: 0; }
+        .data-table tfoot td { font-weight: bold; background-color: #f8f9fa; border-top: 2px solid var(--border-color); }
+        .table-controls { margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .table-controls input { padding: 0.5rem; border-radius: var(--border-radius); border: 1px solid var(--border-color); width: 300px; }
+        .tab-controls { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .tab-button { padding: 0.75rem 1.5rem; border: none; background: none; cursor: pointer; font-size: 1rem; border-bottom: 3px solid transparent; }
+        .tab-button.active { font-weight: bold; color: var(--primary-color); border-bottom-color: var(--primary-color); }
+        
+        .reports-page h2, .reports-page h3 { text-align: center; color: var(--primary-color); }
+        .reports-controls { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .kpi-card { background-color: var(--card-background); padding: 1.5rem; border-radius: var(--border-radius); text-align: center; box-shadow: var(--box-shadow); }
+        .kpi-card h4 { margin: 0 0 0.5rem; color: var(--text-color-light); }
+        .kpi-card p { margin: 0; font-size: 2rem; font-weight: bold; color: var(--primary-color); }
+        .balance-sheet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+
+        .loading-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .spinner { border: 5px solid rgba(0, 47, 52, 0.1); width: 50px; height: 50px; border-radius: 50%; border-left-color: var(--primary-color); animation: spin 1s ease infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    </style>
+
+
+    <div id="root"></div>
+
+    <script type="text/babel" data-presets="react">
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        // --- FIREBASE SETUP ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-zGSwTLq84DV3H-g_XL5-GnwSnaiPF6M",
+            authDomain: "navrose-earning-app-version-3.firebaseapp.com",
+            databaseURL: "https://navrose-earning-app-version-3-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "navrose-earning-app-version-3",
+            storageBucket: "navrose-earning-app-version-3.firebasestorage.app",
+            messagingSenderId: "1055847392099",
+            appId: "1:1055847392099:web:743985132a92f4e9d62956"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.firestore();
+        
+        // --- HELPERS ---
+        const compressImageToBase64 = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onerror = reject;
+            reader.onload = (event) => {
+                if (event.target && typeof event.target.result === 'string') {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onerror = reject;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const maxWidth = 800;
+                        const scaleSize = maxWidth / img.width;
+                        canvas.width = maxWidth;
+                        canvas.height = img.height * scaleSize;
+                        const ctx = canvas.getContext('2d');
+                        if (ctx) {
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            resolve(canvas.toDataURL('image/jpeg', 0.7));
+                        } else {
+                            reject(new Error('Could not get canvas context.'));
+                        }
+                    };
+                } else {
+                    reject(new Error('FileReader result is not a string.'));
+                }
+            };
+        });
+
+        const Notification = ({ message, type, show, onHide }) => {
+            useEffect(() => {
+                if (show) {
+                    const timer = setTimeout(() => onHide(), 5000);
+                    return () => clearTimeout(timer);
+                }
+            }, [show, onHide]);
+            return <div className={`notification ${type} ${show ? 'show' : ''}`}>{message}</div>;
+        };
+
+        const ConfirmModal = ({ show, message, onConfirm, onCancel }) => {
+            if (!show) return null;
+            return (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <p>{message}</p>
+                        <div className="modal-actions">
+                            <button onClick={onCancel} className="btn-cancel">Cancel</button>
+                            <button onClick={() => { onConfirm(); onCancel(); }} className="btn-confirm">Confirm</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        const ImageModal = ({ src, onClose }) => {
+            if (!src) return null;
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <div className="modal-content image-modal-content" onClick={e => e.stopPropagation()}>
+                        <button className="modal-close-btn" onClick={onClose}>&times;</button>
+                        <img src={src} alt="Payment Proof" />
+                    </div>
+                </div>
+            );
+        };
+        
+        const UserEditModal = ({ user, onSave, onCancel }) => {
+            const [formData, setFormData] = useState({ name: '', role: 'user', upiId: '' });
+            const [loading, setLoading] = useState(false);
+
+            useEffect(() => {
+                if (user) {
+                    setFormData({
+                        name: user.name || '',
+                        role: user.role || 'user',
+                        upiId: user.upiId || ''
+                    });
+                }
+            }, [user]);
+
+            const handleChange = (e) => {
+                const { name, value } = e.target;
+                setFormData(prev => ({ ...prev, [name]: value }));
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                await onSave('users', user.id, formData, 'User updated successfully!', 'Failed to update user.');
+                setLoading(false);
+                onCancel();
+            };
+
+            if (!user) return null;
+
+            return (
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <button className="modal-close-btn" onClick={onCancel}>&times;</button>
+                        <h3>Edit User: {user.mobile}</h3>
+                        <form onSubmit={handleSubmit}>
+                            <div className="form-group">
+                                <label>Name</label>
+                                <input type="text" name="name" value={formData.name} onChange={handleChange} required />
+                            </div>
+                            <div className="form-group">
+                                <label>Role</label>
+                                <select name="role" value={formData.role} onChange={handleChange}>
+                                    <option value="user">User</option>
+                                    <option value="seller">Seller</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            {formData.role === 'seller' && (
+                                <div className="form-group">
+                                    <label>UPI ID</label>
+                                    <input type="text" name="upiId" value={formData.upiId} onChange={handleChange} placeholder="e.g., seller@okbank" />
+                                </div>
+                            )}
+                            <div className="modal-actions">
+                                <button type="button" className="btn-cancel" onClick={onCancel}>Cancel</button>
+                                <button type="submit" className="btn-confirm" disabled={loading}>{loading ? 'Saving...' : 'Save Changes'}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- MAIN ADMIN APP ---
+        const AdminApp = () => {
+            const [adminView, setAdminView] = useState('dashboard');
+            const [ads, setAds] = useState([]);
+            const [users, setUsers] = useState([]);
+            const [p2pOrders, setP2POrders] = useState([]);
+            const [boosterOffers, setBoosterOffers] = useState([]);
+            
+            const [loading, setLoading] = useState(true);
+            const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+            const [confirmModal, setConfirmModal] = useState({ show: false, message: '', onConfirm: () => {} });
+            const [paymentProofUrl, setPaymentProofUrl] = useState(null);
+            
+            const showNotification = (message, type = 'info') => setNotification({ show: true, message, type });
+            const hideNotification = () => setNotification(prev => ({ ...prev, show: false }));
+            const showConfirm = (message, onConfirm) => setConfirmModal({ show: true, message, onConfirm });
+            const hideConfirm = () => setConfirmModal({ show: false, message: '', onConfirm: () => {} });
+
+            useEffect(() => {
+                const collections = {
+                    'ads': setAds, 'users': setUsers, 'boosterOffers': setBoosterOffers, 'p2p_orders': setP2POrders
+                };
+
+                const unsubscribers = Object.entries(collections).map(([name, setter]) => {
+                    const query = db.collection(name);
+                    return query.onSnapshot(
+                        snap => {
+                            const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                            // Sort data client-side if it has a createdAt field
+                            if (data.length > 0 && data[0].createdAt) {
+                                data.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                            }
+                            setter(data);
+                        },
+                        err => console.error(`Error fetching ${name}:`, err)
+                    );
+                });
+                
+                setTimeout(() => setLoading(false), 2000);
+
+                return () => unsubscribers.forEach(unsub => unsub());
+            }, []);
+            
+            const pendingAds = useMemo(() => ads.filter(ad => ad.status === 'pending'), [ads]);
+            const pendingP2POrders = useMemo(() => p2pOrders.filter(o => o.status === 'pending_payment'), [p2pOrders]);
+            const totalPendingCount = pendingAds.length + pendingP2POrders.length;
+
+
+            // --- CUD (Create, Update, Delete) Handlers ---
+            const createOrUpdateDoc = async (collection, docId, data, successMsg, errorMsg) => {
+                try {
+                    if (docId) {
+                        await db.collection(collection).doc(docId).set(data, { merge: true });
+                    } else {
+                        await db.collection(collection).add(data);
+                    }
+                    showNotification(successMsg, 'success');
+                } catch (error) {
+                    console.error(errorMsg, error);
+                    showNotification(errorMsg, 'error');
+                }
+            };
+            
+            const deleteDoc = (collection, docId, successMsg, errorMsg) => {
+                showConfirm(`Are you sure you want to permanently delete this item?`, async () => {
+                    try {
+                        await db.collection(collection).doc(docId).delete();
+                        showNotification(successMsg, 'success');
+                    } catch (error) { showNotification(errorMsg, 'error'); }
+                });
+            };
+
+            const handleUpdateStatus = async (collection, docId, newStatus, relatedDoc = {}) => {
+                try {
+                    await db.collection(collection).doc(docId).update({ status: newStatus });
+                    showNotification(`Status updated to ${newStatus}.`, 'success');
+
+                    const buyerId = relatedDoc.buyerId;
+                    if (buyerId && collection === 'p2p_orders') {
+                        const orderId = docId.substring(0, 8).toUpperCase();
+                        const statusMessages = {
+                            payment_verified: `Seller confirmed payment for order #${orderId}.`,
+                            shipped: `Your order #${orderId} has been shipped.`,
+                            delivered: `Your order #${orderId} has been delivered!`,
+                            cancelled: `Unfortunately, your order #${orderId} has been cancelled by the seller.`
+                        };
+                        
+                        if (statusMessages[newStatus]) {
+                            await db.collection('notifications').add({
+                                userId: buyerId,
+                                message: statusMessages[newStatus],
+                                link: 'myOrders',
+                                read: false,
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Failed to update status or send notification for ${collection}/${docId}:`, error);
+                    showNotification('Operation failed. Please check console for details.', 'error');
+                }
+            };
+
+            if (loading) return <div className="loading-container"><div className="spinner"></div></div>;
+
+            return (
+                <div className="app-container">
+                    <Notification show={notification.show} message={notification.message} type={notification.type} onHide={hideNotification} />
+                    <ConfirmModal show={confirmModal.show} message={confirmModal.message} onConfirm={confirmModal.onConfirm} onCancel={hideConfirm} />
+                    <ImageModal src={paymentProofUrl} onClose={() => setPaymentProofUrl(null)} />
+                    
+                    <header className="header">
+                        <h1>Navrose Admin</h1>
+                    </header>
+
+                    <main className="main-content">
+                        <AdminPanel 
+                            adminView={adminView}
+                            setAdminView={setAdminView}
+                            data={{ ads, users, p2pOrders, boosterOffers }}
+                            handlers={{ handleUpdateStatus, deleteDoc, createOrUpdateDoc, onShowProof: setPaymentProofUrl, showNotification }}
+                            pendingCounts={{ ads: pendingAds.length, p2pOrders: pendingP2POrders.length }}
+                        />
+                    </main>
+                </div>
+            );
+        };
+        
+        const BoosterOffersView = ({ offers, handlers }) => {
+            const initialFormState = { title: '', description: '', imageBase64: null };
+            const [formData, setFormData] = useState(initialFormState);
+            const [editingOffer, setEditingOffer] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const { createOrUpdateDoc, deleteDoc, showNotification } = handlers;
+
+            useEffect(() => {
+                if (editingOffer) {
+                    setFormData({
+                        title: editingOffer.title || '',
+                        description: editingOffer.description || '',
+                        imageBase64: editingOffer.imageBase64 || null,
+                    });
+                } else {
+                    setFormData(initialFormState);
+                }
+            }, [editingOffer]);
+
+            const handleInputChange = (e) => {
+                const { name, value } = e.target;
+                setFormData(prev => ({ ...prev, [name]: value }));
+            };
+
+            const handleFileChange = async (e) => {
+                if (e.target.files && e.target.files[0]) {
+                     try {
+                        const base64 = await compressImageToBase64(e.target.files[0]);
+                        setFormData(prev => ({ ...prev, imageBase64: base64 }));
+                    } catch (error) {
+                        showNotification('Error processing image.', 'error');
+                    }
+                }
+            };
+            
+            const resetForm = () => {
+                setEditingOffer(null);
+                const fileInput = document.getElementById('booster-image-input');
+                if(fileInput) fileInput.value = '';
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!formData.title || !formData.description || !formData.imageBase64) {
+                    showNotification('Please fill all fields and upload an image.', 'error');
+                    return;
+                }
+                setLoading(true);
+                const data = {
+                    ...formData,
+                    createdAt: editingOffer?.createdAt || firebase.firestore.FieldValue.serverTimestamp()
+                };
+                const successMsg = editingOffer ? 'Offer updated!' : 'Offer created!';
+                await createOrUpdateDoc('boosterOffers', editingOffer?.id, data, successMsg, 'Failed to save offer.');
+                setLoading(false);
+                resetForm();
+            };
+
+            return (
+                <div>
+                    <h3>Booster Offers (Flash Offers)</h3>
+                    <form className="form-container" onSubmit={handleSubmit}>
+                        <h4>{editingOffer ? 'Edit Offer' : 'Create New Offer'}</h4>
+                        <div className="form-group">
+                            <label>Title</label>
+                            <input type="text" name="title" value={formData.title} onChange={handleInputChange} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Description</label>
+                            <textarea name="description" value={formData.description} onChange={handleInputChange} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Offer Image</label>
+                            <input id="booster-image-input" type="file" accept="image/*" onChange={handleFileChange} />
+                            {formData.imageBase64 && <img src={formData.imageBase64} alt="Offer Preview" className="image-preview" />}
+                        </div>
+                        <button className="btn-approve" type="submit" disabled={loading}>
+                            {loading ? 'Saving...' : (editingOffer ? 'Save Changes' : 'Create Offer')}
+                        </button>
+                        {editingOffer && <button type="button" className="btn-cancel" style={{marginLeft: '1rem'}} onClick={resetForm}>Cancel Edit</button>}
+                    </form>
+                    
+                    <h4>Existing Offers</h4>
+                    {Array.isArray(offers) && offers.length > 0 ? (
+                        <ul className="ads-list">
+                            {offers.map(offer => (
+                                <li key={offer.id} className="ads-list-item">
+                                    <img src={offer.imageBase64 || 'https://via.placeholder.com/80'} alt={offer.title} />
+                                    <div className="ad-info">
+                                        <h4>{offer.title}</h4>
+                                        <p>{offer.description}</p>
+                                    </div>
+                                    <div className="ad-actions">
+                                        <button className="btn-edit" onClick={() => setEditingOffer(offer)}>Edit</button>
+                                        <button className="btn-delete" onClick={() => deleteDoc('boosterOffers', offer.id, 'Offer deleted.', 'Failed to delete offer.')}>Delete</button>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p>No booster offers have been created yet.</p>
+                    )}
+                </div>
+            );
+        };
+        
+        const AdsManagementView = ({ ads, handlers }) => {
+            const [statusFilter, setStatusFilter] = useState('pending');
+            const { handleUpdateStatus, deleteDoc } = handlers;
+            const filteredAds = useMemo(() => ads.filter(ad => ad.status === statusFilter), [ads, statusFilter]);
+
+            return (
+                <div>
+                    <h3>Ad Management</h3>
+                    <div className="tab-controls">
+                        <button className={`tab-button ${statusFilter === 'pending' ? 'active' : ''}`} onClick={() => setStatusFilter('pending')}>Pending</button>
+                        <button className={`tab-button ${statusFilter === 'approved' ? 'active' : ''}`} onClick={() => setStatusFilter('approved')}>Approved</button>
+                        <button className={`tab-button ${statusFilter === 'rejected' ? 'active' : ''}`} onClick={() => setStatusFilter('rejected')}>Rejected</button>
+                    </div>
+                    {filteredAds.length === 0 ? <p>No ads found with status '{statusFilter}'.</p> : (
+                        <ul className="ads-list">
+                            {filteredAds.map(ad => (
+                                <li key={ad.id} className="ads-list-item">
+                                    <img src={ad.imageBase64 || 'https://via.placeholder.com/80'} alt={ad.title} />
+                                    <div className="ad-info"><h4>{ad.title}</h4><p>User: {ad.user} | Price: ₹{ad.price}</p></div>
+                                    <div className="ad-actions">
+                                        {statusFilter === 'pending' && (
+                                            <>
+                                                <button className="btn-approve" onClick={() => handleUpdateStatus('ads', ad.id, 'approved', ad)}>Approve</button>
+                                                <button className="btn-reject" onClick={() => handleUpdateStatus('ads', ad.id, 'rejected', ad)}>Reject</button>
+                                            </>
+                                        )}
+                                        <button className="btn-delete" onClick={() => deleteDoc('ads', ad.id, 'Ad deleted.', 'Failed to delete ad.')}>Delete</button>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            );
+        };
+        
+        const AdminPanel = ({ adminView, setAdminView, data, handlers, pendingCounts }) => {
+            const { ads, users, p2pOrders, boosterOffers } = data;
+            const { handleUpdateStatus, deleteDoc, createOrUpdateDoc, onShowProof } = handlers;
+            const [editingUser, setEditingUser] = useState(null);
+
+            const adminServices = [
+                { name: 'P2P Orders', view: 'p2pOrders', count: pendingCounts.p2pOrders, icon: <svg viewBox="0 0 24 24"><path d="M12 2L1 9l4 12h14l4-12L12 2zm0 4.34L17.66 9h-11.32L12 6.34zM6 19v-8h12v8H6z"></path></svg>},
+                { name: 'P2P Ledger', view: 'p2pLedger', count: 0, icon: <svg viewBox="0 0 24 24"><path d="M19.5 3.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2 4.5 3.5 3 2v14.5c0 1.38 1.12 2.5 2.5 2.5h13c1.38 0 2.5-1.12 2.5-2.5V2l-1.5 1.5zM19 18H7V5h12v13z M9 7h8v2H9z m0 4h8v2H9z m0 4h5v2H9z"></path></svg> },
+                { name: 'Ad Management', view: 'adManagement', count: pendingCounts.ads, icon: <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"></path></svg> },
+                { name: 'User Management', view: 'users', count: 0, icon: <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"></path></svg> },
+                { name: 'Booster Offers', view: 'boosterOffers', count: 0, icon: <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"></path></svg> },
+            ];
+            
+            const renderContent = () => {
+                 switch (adminView) {
+                    case 'adManagement': return <AdsManagementView ads={ads} handlers={handlers} />;
+                    case 'p2pOrders': {
+                        const orders = p2pOrders;
+                        const title = 'Peer-to-Peer (P2P) Orders';
+                        const statusOptions = ['pending_payment', 'payment_verified', 'shipped', 'delivered', 'cancelled'];
+                        
+                        return (
+                        <div>
+                            <h3>{title}</h3>
+                            <ul className="ads-list">
+                                {orders.map(order => (
+                                    <li key={order.id} className="ads-list-item">
+                                        <div className="order-details">
+                                            <h4>Order ID: {order.id.substring(0,8).toUpperCase()}</h4>
+                                            <p>Buyer: {order.buyerId}</p>
+                                            <p>Seller: {order.sellerId}</p>
+                                            <p><strong>Total: ₹{(order.totalAmount || 0).toFixed(2)}</strong></p>
+                                            <p><small>Placed: {order.createdAt ? order.createdAt.toDate().toLocaleString() : 'N/A'}</small></p>
+                                            {order.paymentProofImage && (
+                                                 <button className="btn-edit" style={{marginTop: '0.5rem'}} onClick={() => onShowProof(order.paymentProofImage)}>
+                                                    View Payment Proof
+                                                 </button>
+                                            )}
+                                        </div>
+                                        <div className="order-actions">
+                                            <span className={`ad-status status-${order.status}`}>{order.status.replace('_',' ')}</span>
+                                            <select className="order-status-select" value={order.status} onChange={e => handleUpdateStatus('p2p_orders', order.id, e.target.value, order)}>
+                                                {statusOptions.map(s => <option key={s} value={s}>{s.replace('_',' ')}</option>)}
+                                            </select>
+                                            <button className="btn-delete" onClick={() => deleteDoc('p2p_orders', order.id, 'Order deleted.', 'Failed to delete order.')}>Delete</button>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>);
+                    }
+                    case 'p2pLedger': {
+                        const columns = [
+                            { key: 'createdAt', header: 'Date', formatter: (ts) => ts ? ts.toDate().toLocaleDateString() : 'N/A' },
+                            { key: 'buyerId', header: 'Buyer' },
+                            { key: 'sellerId', header: 'Seller' },
+                            { key: 'totalAmount', header: 'Amount (₹)', isNumeric: true, formatter: (val) => (val || 0).toFixed(2) },
+                            { key: 'status', header: 'Status', render: (item) => <span className={`ad-status status-${item.status}`}>{item.status.replace('_', ' ')}</span> },
+                        ];
+                        const footerData = (filteredData) => ({
+                            sellerId: 'Grand Total:',
+                            totalAmount: `₹${filteredData.filter(item => item.status !== 'cancelled').reduce((sum, item) => sum + (item.totalAmount || 0), 0).toFixed(2)}`
+                        });
+                        return <div><h3>P2P Transaction Ledger</h3><p>Implement SortableTableView here if needed</p></div>;
+                    }
+                    case 'users': {
+                        return (
+                            <div>
+                                <h3>User Management</h3>
+                                <ul className="ads-list">
+                                    {users.map(user => (
+                                        <li key={user.id} className="ads-list-item">
+                                            <div className="ad-info">
+                                                <h4>{user.name} ({user.role})</h4>
+                                                <p>{user.mobile} {user.upiId && `| UPI: ${user.upiId}`}</p>
+                                            </div>
+                                            <div className="ad-actions">
+                                                <button className="btn-edit" onClick={() => setEditingUser(user)}>Edit</button>
+                                                <button className="btn-delete" onClick={() => deleteDoc('users', user.id, 'User deleted.', 'Failed to delete user.')}>Delete</button>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        );
+                    }
+                    case 'boosterOffers': return <BoosterOffersView offers={boosterOffers} handlers={handlers} />;
+                    default: return (
+                        <div className="dashboard-page">
+                            <h2>Admin Dashboard</h2>
+                            <div className="dashboard-grid">
+                                {adminServices.map(service => (
+                                    <div key={service.name} className="dashboard-icon-card" onClick={() => setAdminView(service.view)}>
+                                        {service.count > 0 && <span className="item-count-badge">{service.count}</span>}
+                                        <div className="icon-wrapper">{service.icon}</div>
+                                        <p>{service.name}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>);
+                 }
+            };
+            
+            return (
+                <div>
+                    {editingUser && <UserEditModal user={editingUser} onSave={createOrUpdateDoc} onCancel={() => setEditingUser(null)} />}
+                    {adminView !== 'dashboard' && (
+                        <>
+                            <button onClick={() => setAdminView('dashboard')} style={{ marginBottom: '1rem' }}>&larr; Back to Dashboard</button>
+                        </>
+                    )}
+                    {renderContent()}
+                </div>
+            );
+        };
+        
+        const rootElement = document.getElementById('root');
+        if (rootElement) {
+            const root = ReactDOM.createRoot(rootElement);
+            root.render(<AdminApp />);
+        }
+    </script>
+
+<script></script>
+<script src="./script.js"></script></body></html>
