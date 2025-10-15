@@ -431,6 +431,175 @@
             );
         };
 
+        const SortableTableView = ({ columns, data, initialSort, footerData, onDelete, onEdit }) => {
+            const [filterText, setFilterText] = useState('');
+            const [sortConfig, setSortConfig] = useState(initialSort || { key: columns[0].key, direction: 'descending' });
+
+            const sortedAndFilteredData = useMemo(() => {
+                let filteredData = data;
+                if (filterText) {
+                    filteredData = data.filter(item => {
+                        return Object.values(item).some(val => 
+                            String(val).toLowerCase().includes(filterText.toLowerCase())
+                        );
+                    });
+                }
+
+                const sortedData = [...filteredData].sort((a, b) => {
+                    const valA = a[sortConfig.key];
+                    const valB = b[sortConfig.key];
+                    if (valA < valB) {
+                        return sortConfig.direction === 'ascending' ? -1 : 1;
+                    }
+                    if (valA > valB) {
+                        return sortConfig.direction === 'ascending' ? 1 : -1;
+                    }
+                    return 0;
+                });
+
+                return sortedData;
+            }, [data, filterText, sortConfig]);
+
+            const requestSort = (key) => {
+                let direction = 'ascending';
+                if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+                    direction = 'descending';
+                }
+                setSortConfig({ key, direction });
+            };
+
+            const totals = useMemo(() => {
+                if (!footerData) return null;
+                return footerData(sortedAndFilteredData);
+            }, [sortedAndFilteredData, footerData]);
+
+            return (
+                <div>
+                    <div className="table-controls">
+                        <input
+                            type="text"
+                            placeholder="Filter table data..."
+                            value={filterText}
+                            onChange={(e) => setFilterText(e.target.value)}
+                        />
+                    </div>
+                    <div className="table-container">
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    {columns.map(col => (
+                                        <th key={col.key} onClick={() => col.sortable !== false && requestSort(col.key)}>
+                                            {col.header}
+                                            {sortConfig.key === col.key && (sortConfig.direction === 'ascending' ? ' ▲' : ' ▼')}
+                                        </th>
+                                    ))}
+                                    {(onDelete || onEdit) && <th>Actions</th>}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {sortedAndFilteredData.map(item => (
+                                    <tr key={item.id}>
+                                        {columns.map(col => (
+                                            <td key={col.key} style={{ textAlign: col.isNumeric ? 'right' : 'left' }}>
+                                                {col.render ? col.render(item) : (col.formatter ? col.formatter(item[col.key]) : item[col.key])}
+                                            </td>
+                                        ))}
+                                        {(onDelete || onEdit) && (
+                                            <td>
+                                                <div className="ad-actions">
+                                                    {onEdit && <button className="btn-edit" onClick={() => onEdit(item)}>Edit</button>}
+                                                    {onDelete && <button className="btn-delete" onClick={() => onDelete(item.id)}>Delete</button>}
+                                                </div>
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))}
+                            </tbody>
+                            {totals && (
+                                <tfoot>
+                                    <tr>
+                                        {columns.map(col => (
+                                            <td key={col.key}>{totals[col.key] || ''}</td>
+                                        ))}
+                                        {(onDelete || onEdit) && <td></td>}
+                                    </tr>
+                                </tfoot>
+                            )}
+                        </table>
+                    </div>
+                </div>
+            );
+        };
+
+        const ReportsView = ({ data }) => {
+            const { users, ads, p2pOrders } = data;
+
+            const kpis = useMemo(() => {
+                const deliveredOrders = p2pOrders.filter(o => o.status === 'delivered');
+                const totalSalesVolume = deliveredOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+                
+                return {
+                    totalUsers: users.length,
+                    totalSellers: users.filter(u => u.role === 'seller').length,
+                    approvedAds: ads.filter(a => a.status === 'approved').length,
+                    deliveredOrders: deliveredOrders.length,
+                    totalSalesVolume: `₹${totalSalesVolume.toFixed(2)}`,
+                };
+            }, [users, ads, p2pOrders]);
+
+            const transactionSummary = useMemo(() => {
+                const summary = {};
+                p2pOrders.forEach(order => {
+                    const status = order.status || 'unknown';
+                    if (!summary[status]) {
+                        summary[status] = { count: 0, value: 0 };
+                    }
+                    summary[status].count++;
+                    summary[status].value += (order.totalAmount || 0);
+                });
+                return Object.entries(summary).map(([status, data]) => ({
+                    status: status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                    count: data.count,
+                    value: `₹${data.value.toFixed(2)}`
+                })).sort((a,b) => a.status.localeCompare(b.status));
+            }, [p2pOrders]);
+
+            return (
+                <div className="reports-page">
+                    <h2>Business Reports</h2>
+                    <div className="kpi-grid">
+                        <div className="kpi-card"><h4>Total Users</h4><p>{kpis.totalUsers}</p></div>
+                        <div className="kpi-card"><h4>Total Sellers</h4><p>{kpis.totalSellers}</p></div>
+                        <div className="kpi-card"><h4>Approved Ads</h4><p>{kpis.approvedAds}</p></div>
+                        <div className="kpi-card"><h4>Completed Orders</h4><p>{kpis.deliveredOrders}</p></div>
+                        <div className="kpi-card"><h4>Total Sales Volume</h4><p>{kpis.totalSalesVolume}</p></div>
+                    </div>
+
+                    <h3>Balance Sheet (Transaction Summary)</h3>
+                    <div className="table-container" style={{maxHeight: 'none'}}>
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Number of Orders</th>
+                                    <th>Total Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {transactionSummary.map(row => (
+                                    <tr key={row.status}>
+                                        <td>{row.status}</td>
+                                        <td>{row.count}</td>
+                                        <td>{row.value}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        };
+        
         // --- MAIN ADMIN APP ---
         const AdminApp = () => {
             const [adminView, setAdminView] = useState('dashboard');
@@ -712,6 +881,7 @@
                 { name: 'Ad Management', view: 'adManagement', count: pendingCounts.ads, icon: <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"></path></svg> },
                 { name: 'User Management', view: 'users', count: 0, icon: <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"></path></svg> },
                 { name: 'Booster Offers', view: 'boosterOffers', count: 0, icon: <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"></path></svg> },
+                { name: 'Reports', view: 'reports', count: 0, icon: <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"></path></svg> },
             ];
             
             const renderContent = () => {
@@ -761,33 +931,44 @@
                             { key: 'status', header: 'Status', render: (item) => <span className={`ad-status status-${item.status}`}>{item.status.replace('_', ' ')}</span> },
                         ];
                         const footerData = (filteredData) => ({
-                            sellerId: 'Grand Total:',
-                            totalAmount: `₹${filteredData.filter(item => item.status !== 'cancelled').reduce((sum, item) => sum + (item.totalAmount || 0), 0).toFixed(2)}`
+                            sellerId: 'Grand Total (Delivered):',
+                            totalAmount: `₹${filteredData.filter(item => item.status === 'delivered').reduce((sum, item) => sum + (item.totalAmount || 0), 0).toFixed(2)}`
                         });
-                        return <div><h3>P2P Transaction Ledger</h3><p>Implement SortableTableView here if needed</p></div>;
+                        return (
+                            <div>
+                                <h3>P2P Transaction Ledger</h3>
+                                <SortableTableView 
+                                    columns={columns} 
+                                    data={p2pOrders}
+                                    initialSort={{ key: 'createdAt', direction: 'descending' }}
+                                    footerData={footerData}
+                                    onDelete={(id) => deleteDoc('p2p_orders', id, 'Order deleted.', 'Failed to delete order.')}
+                                />
+                            </div>
+                        );
                     }
                     case 'users': {
+                         const columns = [
+                            { key: 'name', header: 'Name' },
+                            { key: 'mobile', header: 'Mobile' },
+                            { key: 'role', header: 'Role' },
+                            { key: 'upiId', header: 'UPI ID' },
+                        ];
                         return (
                             <div>
                                 <h3>User Management</h3>
-                                <ul className="ads-list">
-                                    {users.map(user => (
-                                        <li key={user.id} className="ads-list-item">
-                                            <div className="ad-info">
-                                                <h4>{user.name} ({user.role})</h4>
-                                                <p>{user.mobile} {user.upiId && `| UPI: ${user.upiId}`}</p>
-                                            </div>
-                                            <div className="ad-actions">
-                                                <button className="btn-edit" onClick={() => setEditingUser(user)}>Edit</button>
-                                                <button className="btn-delete" onClick={() => deleteDoc('users', user.id, 'User deleted.', 'Failed to delete user.')}>Delete</button>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ul>
+                                <SortableTableView
+                                    columns={columns}
+                                    data={users}
+                                    initialSort={{ key: 'name', direction: 'ascending' }}
+                                    onEdit={(user) => setEditingUser(user)}
+                                    onDelete={(id) => deleteDoc('users', id, 'User deleted.', 'Failed to delete user.')}
+                                />
                             </div>
                         );
                     }
                     case 'boosterOffers': return <BoosterOffersView offers={boosterOffers} handlers={handlers} />;
+                    case 'reports': return <ReportsView data={data} />;
                     default: return (
                         <div className="dashboard-page">
                             <h2>Admin Dashboard</h2>
